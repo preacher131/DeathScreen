@@ -1,12 +1,12 @@
-local CurrentVersion = '2.1.0'
+local CurrentVersion = '2.2.0'
 
 --Update Check
 
-PerformHttpRequest("https://raw.githubusercontent.com/Flatracer/DeathScreen_Resources/master/VERSION", function(Error, NewestVersion, Header)
-	PerformHttpRequest("https://raw.githubusercontent.com/Flatracer/DeathScreen_Resources/master/CHANGES", function(Error, Changes, Header)
-		print("\n")
-		print("####################################################################")
-		print("########################### Death Screen ###########################")
+PerformHttpRequest('https://raw.githubusercontent.com/Flatracer/DeathScreen_Resources/master/VERSION', function(Error, NewestVersion, Header)
+	PerformHttpRequest('https://raw.githubusercontent.com/Flatracer/DeathScreen_Resources/master/CHANGES', function(Error, Changes, Header)
+		print('\n')
+		print('####################################################################')
+		print('########################### Death Screen ###########################')
 		print('####################################################################')
 		print('#####                  Current Version: ' .. CurrentVersion .. '                  #####')
 		print('#####                   Newest Version: ' .. NewestVersion .. '                  #####')
@@ -21,4 +21,11 @@ PerformHttpRequest("https://raw.githubusercontent.com/Flatracer/DeathScreen_Reso
 		end
 		print('\n')
 	end)
+end)
+
+-- Client to Client Communication
+
+RegisterServerEvent('DeathScreen:SendDeathMessage')
+AddEventHandler('DeathScreen:SendDeathMessage', function(Victim, Killer, DeathReasonVictim, DeathReasonOthers, DeathReasonKiller) --Sends the Death Message to every client
+	TriggerClientEvent('DeathScreen:PrintDeathMessage', -1, Victim, Killer, DeathReasonVictim, DeathReasonOthers, DeathReasonKiller)
 end)
