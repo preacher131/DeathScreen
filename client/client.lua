@@ -134,7 +134,7 @@ Citizen.CreateThread(function()
 			
 			Citizen.Wait(300)
 			
-			TriggerServerEvent('DeathScreen:SendDeathMessage', PlayerId(), Killer, DeathReasonVictim, DeathReasonOthers, DeathReasonKiller)
+			TriggerServerEvent(GetCurrentResourceName() .. ':SendDeathMessage', PlayerId(), Killer, DeathReasonVictim, DeathReasonOthers, DeathReasonKiller)
 			
 			PlaySoundFrontend(-1, 'MP_Flash', 'WastedSounds', 1)
 			
@@ -254,8 +254,8 @@ Citizen.CreateThread(function()
     end
 end)
 
-RegisterNetEvent('DeathScreen:PrintDeathMessage')
-AddEventHandler('DeathScreen:PrintDeathMessage', function(Victim, Killer, DeathReasonVictim, DeathReasonOthers, DeathReasonKiller) --Prints the Death Message
+RegisterNetEvent(GetCurrentResourceName() .. ':PrintDeathMessage')
+AddEventHandler(GetCurrentResourceName() .. ':PrintDeathMessage', function(Victim, Killer, DeathReasonVictim, DeathReasonOthers, DeathReasonKiller) --Prints the Death Message
 	if (Victim == PlayerId()) then
 		drawNotification(GetLabelText(DeathReasonVictim):gsub('~a~', '~bold~' .. GetPlayerName(Killer) .. '~bold~'))
 	elseif (Killer == PlayerId()) then
