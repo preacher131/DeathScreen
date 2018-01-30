@@ -54,15 +54,13 @@ AddEventHandler('rconCommand', function(CMDName, Arguments)
 			print('Argument count mismatch (Passed: ' .. #Arguments .. ', Wanted: 1)')
 		end
 		CancelEvent()
-    end
+	end
 end)
 
 RegisterServerEvent(GetCurrentResourceName() .. ':StartUpdate')
 AddEventHandler(GetCurrentResourceName() .. ':StartUpdate', function()
 	if UpdateAvailable then
-		print('Soon...')
-		
-		PerformHttpRequest('https://raw.githubusercontent.com/Flatracer/Resources/' .. GithubResourceName .. '/master/CHANGEDFILES', function(Error, Content, Header)
+		PerformHttpRequest('https://raw.githubusercontent.com/Flatracer/' .. GithubResourceName .. '_Resources/master/CHANGEDFILES', function(Error, Content, Header)
 			ContentSplitted = stringsplit(Content, '\n')
 			for k, Line in ipairs(ContentSplitted) do
 				PerformHttpRequest('https://raw.githubusercontent.com/Flatracer/' .. GithubResourceName .. '/master/' .. Line, function(Error, FileContent, Header)
@@ -70,6 +68,7 @@ AddEventHandler(GetCurrentResourceName() .. ':StartUpdate', function()
 				end)
 			end
 		end)
+		print('Update finished! Enter "restart ' .. GetCurrentResourceName() .. '" now!')
 	else
 		print('This is already the newest version! [' .. CurrentVersion .. ']')
 	end
