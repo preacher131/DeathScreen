@@ -1,47 +1,49 @@
 AddEventHandler('onClientMapStart', function()
-	exports.spawnmanager:spawnPlayer() --Spawn
+	exports.spawnmanager:spawnPlayer()
 	Citizen.Wait(5000)
-	exports.spawnmanager:setAutoSpawn(false) --Disable AutoSpawn
+	exports.spawnmanager:setAutoSpawn(false)
 end)
 
 Citizen.CreateThread(function()
-	local scaleform, X, Y, W; H = 0.0125
+	local ScaleformDM, ScaleformIB, X, Y, W; H = 0.0125
+	local CheckPoint
 	
 	RequestScriptAudioBank('MP_WASTED', 0)
 	
 	while true do
-		Citizen.Wait(0)  
-	   
-		if not HasThisAdditionalTextLoaded('global', 100) then
-			ClearAdditionalText(100, true)
-			RequestAdditionalText('global', 100)
-			while not HasThisAdditionalTextLoaded('global', 100) do
+		Citizen.Wait(0)
+
+		if not HasScaleformMovieLoaded(ScaleformDM) then
+			ScaleformDM = RequestScaleformMovie('MP_BIG_MESSAGE_FREEMODE')
+			while not HasScaleformMovieLoaded(ScaleformDM) do
 				Citizen.Wait(0)
 			end
 		end
 		
-		if not HasNamedScaleformMovieLoaded('MP_BIG_MESSAGE_FREEMODE') then
-			scaleform = RequestScaleformMovie('MP_BIG_MESSAGE_FREEMODE')
-			while not HasNamedScaleformMovieLoaded('MP_BIG_MESSAGE_FREEMODE') do
+		if not HasScaleformMovieLoaded(ScaleformIB) then
+			ScaleformIB = RequestScaleformMovie('INSTRUCTIONAL_BUTTONS')
+			while not HasScaleformMovieLoaded(ScaleformIB) do
 				Citizen.Wait(0)
 			end
 		end
 		
-		if not HasStreamedTextureDictLoaded('timerbars') then
-			RequestStreamedTextureDict('timerbars')
-			while not HasStreamedTextureDictLoaded('timerbars') do
+		if not HasStreamedTextureDictLoaded('TIMERBARS') then
+			RequestStreamedTextureDict('TIMERBARS')
+			while not HasStreamedTextureDictLoaded('TIMERBARS') do
 				Citizen.Wait(0)
 			end
 		end
 		
 		if IsPlayerDead(PlayerId()) then
-			local PedKiller = GetPedSourceOfDeath(PlayerPedId()); DeathCauseHash = GetPedCauseOfDeath(PlayerPedId())
+			ClearHelp(1)
+			
+			local PedKiller = GetPedSourceOfDeath(PlayerPedId())
 			local Killer, DeathReasonVictim, DeathReasonOthers, DeathReasonKiller, INT
 
-			if IsPedAPlayer(PedKiller) then
+			if IsEntityAPed(PedKiller) and IsPedAPlayer(PedKiller) then
 				Killer = NetworkGetPlayerIndexFromPed(PedKiller)
-			else
-				Killer = nil
+			elseif IsEntityAVehicle(PedKiller) and IsEntityAPed(GetPedInVehicleSeat(PedKiller, -1)) and IsPedAPlayer(GetPedInVehicleSeat(PedKiller, -1)) then
+				Killer = NetworkGetPlayerIndexFromPed(GetPedInVehicleSeat(PedKiller, -1))
 			end
 			
 			if (Killer == PlayerId()) then
@@ -49,160 +51,105 @@ Citizen.CreateThread(function()
 				DeathReasonOthers = 'DM_O_SUIC'
 			elseif (Killer == nil) then
 				DeathReasonVictim = 'DM_TK_YD1'
---				if DeathCauseHash == GetHashKey('WEAPON_FALL') then -- Currently not working ¯\_(ツ)_/¯
---					DeathReasonOthers = 'DM_TK_FALL0'
---				else
-					DeathReasonOthers = 'TICK_DIED'
---				end
+				DeathReasonOthers = 'TICK_DIED'
 			else
-				if IsMelee(DeathCauseHash) then
-					INT = GetRandomIntInRange(0, 4)
-					DeathReasonVictim = 'DM_TK_MELEE1' .. INT
-					DeathReasonKiller = 'DM_TK_MELEE0' .. INT
-					DeathReasonOthers = 'DM_TK_MELEE2' .. INT
-				elseif IsTorch(DeathCauseHash) then
-					INT = GetRandomIntInRange(0, 2)
-					DeathReasonVictim = 'DM_TK_TORCH1' .. INT
-					DeathReasonKiller = 'DM_TK_TORCH0' .. INT
-					DeathReasonOthers = 'DM_TK_TORCH2' .. INT
-				elseif IsKnife(DeathCauseHash) then
-					INT = GetRandomIntInRange(0, 2)
-					DeathReasonVictim = 'DM_TK_KNIFE1' .. INT
-					DeathReasonKiller = 'DM_TK_KNIFE0' .. INT
-					DeathReasonOthers = 'DM_TK_KNIFE2' .. INT
-				elseif IsPistol(DeathCauseHash) then
-					INT = GetRandomIntInRange(0, 1)
-					DeathReasonVictim = 'DM_TK_PISTOL1' .. INT
-					DeathReasonKiller = 'DM_TK_PISTOL0' .. INT
-					DeathReasonOthers = 'DM_TK_PISTOL2' .. INT
-				elseif IsSub(DeathCauseHash) then
-					INT = GetRandomIntInRange(0, 3)
-					DeathReasonVictim = 'DM_TK_SUB1' .. INT
-					DeathReasonKiller = 'DM_TK_SUB0' .. INT
-					DeathReasonOthers = 'DM_TK_SUB2' .. INT
-				elseif IsRifle(DeathCauseHash) then
-					INT = GetRandomIntInRange(0, 3)
-					DeathReasonVictim = 'DM_TK_ARIFLE1' .. INT
-					DeathReasonKiller = 'DM_TK_ARIFLE0' .. INT
-					DeathReasonOthers = 'DM_TK_ARIFLE2' .. INT
-				elseif IsLight(DeathCauseHash) then
-					INT = GetRandomIntInRange(0, 2)
-					DeathReasonVictim = 'DM_TK_LIGHT1' .. INT
-					DeathReasonKiller = 'DM_TK_LIGHT0' .. INT
-					DeathReasonOthers = 'DM_TK_LIGHT2' .. INT
-				elseif IsShotgun(DeathCauseHash) then
-					INT = GetRandomIntInRange(0, 2)
-					DeathReasonVictim = 'DM_TK_SHOT1' .. INT
-					DeathReasonKiller = 'DM_TK_SHOT0' .. INT
-					DeathReasonOthers = 'DM_TK_SHOT2' .. INT
-				elseif IsSniper(DeathCauseHash) then
-					INT = GetRandomIntInRange(0, 2)
-					DeathReasonVictim = 'DM_TK_SNIPE1' .. INT
-					DeathReasonKiller = 'DM_TK_SNIPE0' .. INT
-					DeathReasonOthers = 'DM_TK_SNIPE2' .. INT
-				elseif IsHeavy(DeathCauseHash) then
-					INT = GetRandomIntInRange(0, 2)
-					DeathReasonVictim = 'DM_TK_HEAVY1' .. INT
-					DeathReasonKiller = 'DM_TK_HEAVY0' .. INT
-					DeathReasonOthers = 'DM_TK_HEAVY2' .. INT
-				elseif IsMinigun(DeathCauseHash) then
-					INT = GetRandomIntInRange(0, 3)
-					DeathReasonVictim = 'DM_TK_MINI1' .. INT
-					DeathReasonKiller = 'DM_TK_MINI0' .. INT
-					DeathReasonOthers = 'DM_TK_MINI2' .. INT
-				elseif IsBomb(DeathCauseHash) then
-					INT = GetRandomIntInRange(0, 2)
-					DeathReasonVictim = 'DM_TK_BOMB1' .. INT
-					DeathReasonKiller = 'DM_TK_BOMB0' .. INT
-					DeathReasonOthers = 'DM_TK_BOMB2' .. INT
-				elseif IsVeh(DeathCauseHash) then
-					DeathReasonVictim = 'DM_TK_VEH1'
-					DeathReasonKiller = 'DM_TK_VEH0'
-					DeathReasonOthers = 'DM_TK_VEH2'
-				elseif IsVK(DeathCauseHash) then
-					DeathReasonVictim = 'DM_TK_VK1'
-					DeathReasonKiller = 'DM_TK_VK0'
-					DeathReasonOthers = 'DM_TK_VK2'
-				else
-					DeathReasonVictim = 'DM_TICK1'
-					DeathReasonKiller = 'DM_TICK2'
-					DeathReasonOthers = 'DM_TICK6'
-				end
+				DeathReasonKiller, DeathReasonVictim, DeathReasonOthers = GetReason(GetPedCauseOfDeath(PlayerPedId()))
 			end
 			
-			StartScreenEffect('DeathFailOut', 0, 0)
-			
-			Citizen.Wait(300)
+			if N_0x35fb78dc42b7bd21() then
+				StartScreenEffect('DeathFailMPDark', 0, 0)
+			else
+				StartScreenEffect('DeathFailMPIn', 0, 0)
+			end
+			ShakeGameplayCam("DEATH_FAIL_IN_EFFECT_SHAKE", 1.0)
+			SetCamEffect(2)
 			
 			TriggerServerEvent(GetCurrentResourceName() .. ':SendDeathMessage', PlayerId(), Killer, DeathReasonVictim, DeathReasonOthers, DeathReasonKiller)
 			
-			PlaySoundFrontend(-1, 'MP_Flash', 'WastedSounds', 1)
+			Citizen.Wait(750)
 			
-			ShakeGameplayCam('DEATH_FAIL_IN_EFFECT_SHAKE', 1.0)
+			PlaySoundFrontend(-1, 'MP_Flash', 'WastedSounds', true)
 
-			PushScaleformMovieFunction(scaleform, 'SHOW_SHARD_WASTED_MP_MESSAGE')
-			PushScaleformMovieFunctionParameterString(GetLabelText('RESPAWN_W'))
-			if DeathReasonVictim ~= 'DM_TK_YD1' then
-				PushScaleformMovieFunctionParameterString(GetLabelText(DeathReasonVictim))
+			BeginScaleformMovieMethod(ScaleformDM, 'SHOW_SHARD_WASTED_MP_MESSAGE')
+			PushScaleformMovieMethodParameterString(GetLabelText('RESPAWN_W_MP'))
+			if DeathReasonVictim == 'DM_TK_YD1' then
+				PushScaleformMovieMethodParameterString('')
+			else
+				PushScaleformMovieMethodParameterString(GetLabelText(DeathReasonVictim):gsub('~a~', '~bold~' .. GetPlayerName(Killer) .. '~bold~'))
 			end
-			PopScaleformMovieFunctionVoid()
-			
-			Citizen.Wait(500)
+			PushScaleformMovieMethodParameterInt(6)
+			EndScaleformMovieMethod()
 			
 			local timer = GetGameTimer()
 				
 			while IsPlayerDead(PlayerId()) do
 				Citizen.Wait(0)
-				DrawScaleformMovieFullscreen(scaleform, 255, 255, 255, 255)
+				
+				HideHudComponentThisFrame(1)
+				HideHudComponentThisFrame(2)
+				HideHudComponentThisFrame(3)
+				HideHudComponentThisFrame(4)
+				HideHudComponentThisFrame(5)
+				HideHudComponentThisFrame(6)
+				HideHudComponentThisFrame(7)
+				HideHudComponentThisFrame(8)
+				HideHudComponentThisFrame(9)
+				HideHudComponentThisFrame(13)
+				HideHudComponentThisFrame(14)
+				HideHudComponentThisFrame(15)
+				HideHudComponentThisFrame(16)
+				HideHudComponentThisFrame(17)
+				HideHudComponentThisFrame(19)
+				N_0x7669f9e39dc17063()
+
+				DrawScaleformMovieFullscreen(ScaleformDM, 255, 255, 255, 255)
 				
 				if Killer and Killer ~= PlayerId() then
-					local ScaleformMovie = RequestScaleformMovie('instructional_buttons')
-					DrawScaleformMovieFullscreen(ScaleformMovie, 255, 255, 255, 0)
-					PushScaleformMovieFunction(ScaleformMovie, 'CLEAR_ALL')
-					PopScaleformMovieFunctionVoid()
-					PushScaleformMovieFunction(ScaleformMovie, 'SET_CLEAR_SPACE')
-					PushScaleformMovieFunctionParameterInt(200)
-					PopScaleformMovieFunctionVoid()
+					DrawScaleformMovieFullscreen(ScaleformIB, 255, 255, 255, 0)
+					BeginScaleformMovieMethod(ScaleformIB, 'CLEAR_ALL')
+					EndScaleformMovieMethod()
+					BeginScaleformMovieMethod(ScaleformIB, 'SET_CLEAR_SPACE')
+					PushScaleformMovieMethodParameterInt(200)
+					EndScaleformMovieMethod()
 					
-					PushScaleformMovieFunction(ScaleformMovie, 'SET_DATA_SLOT')
-					PushScaleformMovieFunctionParameterInt(0)
+					BeginScaleformMovieMethod(ScaleformIB, 'SET_DATA_SLOT')
+					PushScaleformMovieMethodParameterInt(0)
 					if GetLastInputMethod(2) then
-						PushScaleformMovieFunctionParameterInt(100)
+						PushScaleformMovieMethodParameterInt(100)
 					else
-						PushScaleformMovieFunctionParameterInt(30)
+						PushScaleformMovieMethodParameterInt(30)
 					end
 					BeginTextCommandScaleformString('STRING')
 					AddTextComponentScaleform(GetLabelText('HUD_INPUT97'))
 					EndTextCommandScaleformString()	
-					PopScaleformMovieFunctionVoid()
+					EndScaleformMovieMethod()
 
-					PushScaleformMovieFunction(ScaleformMovie, 'DRAW_INSTRUCTIONAL_BUTTONS')
-					PopScaleformMovieFunctionVoid()
-					PushScaleformMovieFunction(ScaleformMovie, 'SET_BACKGROUND_COLOUR')
-					PushScaleformMovieFunctionParameterInt(0)
-					PushScaleformMovieFunctionParameterInt(0)
-					PushScaleformMovieFunctionParameterInt(0)
-					PushScaleformMovieFunctionParameterInt(60)
-					PopScaleformMovieFunctionVoid()
+					BeginScaleformMovieMethod(ScaleformIB, 'DRAW_INSTRUCTIONAL_BUTTONS')
+					EndScaleformMovieMethod()
+					BeginScaleformMovieMethod(ScaleformIB, 'SET_BACKGROUND_COLOUR')
+					PushScaleformMovieMethodParameterInt(0)
+					PushScaleformMovieMethodParameterInt(0)
+					PushScaleformMovieMethodParameterInt(0)
+					PushScaleformMovieMethodParameterInt(60)
+					EndScaleformMovieMethod()
 
-					if ((GetLastInputMethod(2) and (IsControlJustPressed(1, 24) or IsDisabledControlJustPressed(1, 24))) or (not GetLastInputMethod(2) and
-					   (IsControlJustPressed(1, 21) or IsDisabledControlJustPressed(1, 21)))) and GetTimeDifference(GetGameTimer(), timer) < 6750 then
-						PlaySoundFrontend(-1, 'Faster_Bar_Full', 'RESPAWN_ONLINE_SOUNDSET', 1)
-						timer = GetTimeDifference(timer, 250)
+					if FasterRespawnClicked() and GetTimeDifference(GetGameTimer(), timer) < 11800 then
+						PlaySoundFrontend(-1, 'Faster_Click', 'RESPAWN_ONLINE_SOUNDSET', true)
+						timer = GetTimeDifference(timer, 500)
 					end
 
-					if GetTimeDifference(GetGameTimer(), timer) < 7500 then
-						W = (GetTimeDifference(GetGameTimer(), timer) * (0.085 / 7500))
+					if GetTimeDifference(GetGameTimer(), timer) < 12000 then
+						W = (GetTimeDifference(GetGameTimer(), timer) * (0.085 / 12000))
 					end
 					
 					local correction = ((1.0 - round(GetSafeZoneSize(), 2)) * 100) * 0.005
-					X, Y = 0.9255 - correction, 0.94 - correction
+					X, Y = 0.9095 - correction, 0.94 - correction
 					
 					Set_2dLayer(0)
-					DrawSprite('timerbars', 'all_black_bg', X, Y, 0.15, 0.0325, 0.0, 255, 255, 255, 180)
+					DrawSprite('TimerBars', 'ALL_BLACK_bg', X, Y, 0.15, 0.0305, 0.0, 255, 255, 255, 180)
 					
 					Set_2dLayer(1)
-					DrawRect(X + 0.0275, Y, 0.085, 0.0125, 100, 0, 0, 180)
+					DrawRect(X + 0.0275, Y, 0.085, 0.0095, 100, 0, 0, 180)
 					
 					Set_2dLayer(2)
 					DrawRect(X - 0.015 + (W / 2), Y, W, H, 150, 0, 0, 180)
@@ -217,41 +164,51 @@ Citizen.CreateThread(function()
 					DrawText(X - 0.06, Y - 0.012)
 					
 					if GetTimeDifference(GetGameTimer(), timer) >= 3000 then
-						if IsGameplayCamShaking() then
-							StopGameplayCamShaking(true)
-						end
---[[						if not NetworkIsInSpectatorMode() then
-							while not HasCollisionLoadedAroundEntity(GetPlayerPed(Killer)) do
-								Citizen.Wait(0)
-								RequestCollisionAtCoord(GetEntityCoords(GetPlayerPed(Killer), true))
-							end
-							NetworkSetInSpectatorMode(true, GetPlayerPed(Killer))
+						if IsEntityAPed(PedKiller) and IsPedAPlayer(PedKiller) then
+							DisableAllControlActions(0)
+
+							SetCamEffect(0)
+							SetFocusEntity(PedKiller)
+							NetworkSetOverrideSpectatorMode(true)
+							NetworkSetInSpectatorMode(true, PedKiller)
 							SetCinematicModeActive(true)
-						end]]																			-- Currently not working ¯\_(ツ)_/¯
+						end
 					end
 					
-					if GetTimeDifference(GetGameTimer(), timer) >= 7500 then
+
+					if GetTimeDifference(GetGameTimer(), timer) >= 12000 then
+						PlaySoundFrontend(-1, 'Faster_Bar_Full', 'RESPAWN_ONLINE_SOUNDSET', true)
+						Citizen.Wait(500)
 						exports.spawnmanager:spawnPlayer()
 					end
 				else
-					if GetTimeDifference(GetGameTimer(), timer) >= 5000 then
+					if GetTimeDifference(GetGameTimer(), timer) >= 3800 then
 						exports.spawnmanager:spawnPlayer()
 					end
 				end
 			end
 			
-			if GetScreenEffectIsActive('DeathFailOut') then
-				StopScreenEffect('DeathFailOut')
+			SetCamEffect(0)
+			
+			if GetScreenEffectIsActive('DeathFailMPDark') then
+				StopScreenEffect('DeathFailMPDark')
+			elseif GetScreenEffectIsActive('DeathFailMPIn') then
+				StopScreenEffect('DeathFailMPIn')
 			end
+			
 			if IsGameplayCamShaking() then
-				StopGameplayCamShaking(true)
+				StopGameplayCamShaking(false)
 			end
---[[			if NetworkIsInSpectatorMode then
+			
+			if NetworkIsInSpectatorMode() then
 				SetCinematicModeActive(false)
-				NetworkSetInSpectatorMode(false, GetPlayerPed(Killer))
-			end]] 														-- Currently not working ¯\_(ツ)_/¯
+				NetworkSetOverrideSpectatorMode(false)
+				NetworkSetInSpectatorMode(false, PedKiller)
+			end
+			
+			SetFocusEntity(PlayerPedId())
 		end
-    end
+	end
 end)
 
 RegisterNetEvent(GetCurrentResourceName() .. ':PrintDeathMessage')
@@ -261,7 +218,11 @@ AddEventHandler(GetCurrentResourceName() .. ':PrintDeathMessage', function(Victi
 	elseif (Killer == PlayerId()) then
 		drawNotification(GetLabelText(DeathReasonKiller):gsub('~a~', '~bold~' .. GetPlayerName(Victim) .. '~bold~'))
 	else
-		drawNotification(GetLabelText(DeathReasonOthers):gsub('~a~', '~bold~' .. GetPlayerName(Killer) .. '~bold~', 1):gsub('~a~', '~bold~' .. GetPlayerName(Victim) .. '~bold~'))
+		if Killer then
+			drawNotification(GetLabelText(DeathReasonOthers):gsub('~a~', '~bold~' .. GetPlayerName(Killer) .. '~bold~', 1):gsub('~a~', '~bold~' .. GetPlayerName(Victim) .. '~bold~'))
+		else
+			drawNotification(GetLabelText(DeathReasonOthers):gsub('~a~', '~bold~' .. GetPlayerName(Victim) .. '~bold~'))
+		end
 	end
 end)
 
@@ -276,10 +237,29 @@ function drawNotification(Notification)
 	DrawNotification(false, false)
 end
 
+function GetIsControlJustPressed(Control)
+	if IsControlJustPressed(1, Control) or IsDisabledControlJustPressed(1, Control) then
+		return true
+	end
+	return false
+end
+
 function IsMelee(Weapon)
-	local Weapons = {'WEAPON_UNARMED', 'WEAPON_CROWBAR', 'WEAPON_BAT', 'WEAPON_GOLFCLUB', 'WEAPON_HAMMER', 'WEAPON_NIGHTSTICK'}
+	local Weapons = {
+					 GetHashKey('WEAPON_UNARMED'),
+					 GetHashKey('WEAPON_BAT'),
+					 GetHashKey('WEAPON_NIGHTSTICK'),
+					 GetHashKey('WEAPON_HAMMER'),
+					 GetHashKey('WEAPON_CROWBAR'),
+					 GetHashKey('WEAPON_GOLFCLUB'),
+					 GetHashKey('WEAPON_KNUCKLE'),
+					 GetHashKey('WEAPON_HATCHET'),
+					 GetHashKey('WEAPON_POOLCUE'),
+					 GetHashKey('WEAPON_WRENCH'),
+					 GetHashKey('WEAPON_FLASHLIGHT'),
+					}
 	for i, CurrentWeapon in ipairs(Weapons) do
-		if GetHashKey(CurrentWeapon) == Weapon then
+		if CurrentWeapon == Weapon then
 			return true
 		end
 	end
@@ -287,9 +267,12 @@ function IsMelee(Weapon)
 end
 
 function IsTorch(Weapon)
-	local Weapons = {'WEAPON_MOLOTOV'}
+	local Weapons = {
+					 GetHashKey('WEAPON_MOLOTOV'),
+					 GetHashKey('WEAPON_FIRE'),
+					}
 	for i, CurrentWeapon in ipairs(Weapons) do
-		if GetHashKey(CurrentWeapon) == Weapon then
+		if CurrentWeapon == Weapon then
 			return true
 		end
 	end
@@ -297,9 +280,16 @@ function IsTorch(Weapon)
 end
 
 function IsKnife(Weapon)
-	local Weapons = {'WEAPON_DAGGER', 'WEAPON_KNIFE', 'WEAPON_SWITCHBLADE', 'WEAPON_HATCHET', 'WEAPON_BOTTLE'}
+	local Weapons = {
+					 GetHashKey('WEAPON_KNIFE'),
+					 GetHashKey('WEAPON_BOTTLE'),
+					 GetHashKey('WEAPON_DAGGER'),
+					 GetHashKey('WEAPON_BATTLEAXE'),
+					 GetHashKey('WEAPON_MACHETE'),
+					 GetHashKey('WEAPON_SWITCHBLADE'),
+					}
 	for i, CurrentWeapon in ipairs(Weapons) do
-		if GetHashKey(CurrentWeapon) == Weapon then
+		if CurrentWeapon == Weapon then
 			return true
 		end
 	end
@@ -307,9 +297,24 @@ function IsKnife(Weapon)
 end
 
 function IsPistol(Weapon)
-	local Weapons = {'WEAPON_SNSPISTOL', 'WEAPON_HEAVYPISTOL', 'WEAPON_VINTAGEPISTOL', 'WEAPON_PISTOL', 'WEAPON_APPISTOL', 'WEAPON_COMBATPISTOL'}
+	local Weapons = {
+					 GetHashKey('WEAPON_PISTOL'),
+					 GetHashKey('WEAPON_COMBATPISTOL'),
+					 GetHashKey('WEAPON_APPISTOL'),
+					 GetHashKey('WEAPON_SNSPISTOL'),
+					 GetHashKey('WEAPON_HEAVYPISTOL'),
+					 GetHashKey('WEAPON_VINTAGEPISTOL'),
+					 GetHashKey('WEAPON_MARKSMANPISTOL'),
+					 GetHashKey('WEAPON_MACHINEPISTOL'),
+					 GetHashKey('WEAPON_REVOLVER'),
+					 GetHashKey('WEAPON_PISTOL50'),
+					 GetHashKey('WEAPON_PISTOL_MK2'),
+					 GetHashKey('WEAPON_DOUBLEACTION'),
+					 GetHashKey('WEAPON_REVOLVER_MK2'),
+					 GetHashKey('WEAPON_SNSPISTOL_MK2'),
+					}
 	for i, CurrentWeapon in ipairs(Weapons) do
-		if GetHashKey(CurrentWeapon) == Weapon then
+		if CurrentWeapon == Weapon then
 			return true
 		end
 	end
@@ -317,9 +322,17 @@ function IsPistol(Weapon)
 end
 
 function IsSub(Weapon)
-	local Weapons = {'WEAPON_MICROSMG', 'WEAPON_SMG'}
+	local Weapons = {
+					 GetHashKey('WEAPON_SMG'),
+					 GetHashKey('WEAPON_MICROSMG'),
+					 GetHashKey('WEAPON_COMBATPDW'),
+					 GetHashKey('WEAPON_MINISMG'),
+					 GetHashKey('WEAPON_ASSAULTSMG'),
+					 GetHashKey('WEAPON_GUSENBERG'),
+					 GetHashKey('WEAPON_SMG_MK2'),
+					}
 	for i, CurrentWeapon in ipairs(Weapons) do
-		if GetHashKey(CurrentWeapon) == Weapon then
+		if CurrentWeapon == Weapon then
 			return true
 		end
 	end
@@ -327,9 +340,21 @@ function IsSub(Weapon)
 end
 
 function IsRifle(Weapon)
-	local Weapons = {'WEAPON_CARBINERIFLE', 'WEAPON_MUSKET', 'WEAPON_ADVANCEDRIFLE', 'WEAPON_ASSAULTRIFLE', 'WEAPON_SPECIALCARBINE', 'WEAPON_COMPACTRIFLE', 'WEAPON_BULLPUPRIFLE'}
+	local Weapons = {
+					 GetHashKey('WEAPON_ASSAULTRIFLE'),
+					 GetHashKey('WEAPON_CARBINERIFLE'),
+					 GetHashKey('WEAPON_CARBINERIFLE_MK2'),
+					 GetHashKey('WEAPON_ADVANCEDRIFLE'),
+					 GetHashKey('WEAPON_ASSAULTRIFLE_MK2'),
+					 GetHashKey('WEAPON_SPECIALCARBINE'),
+					 GetHashKey('WEAPON_BULLPUPRIFLE'),
+					 GetHashKey('WEAPON_MUSKET'),
+					 GetHashKey('WEAPON_COMPACTRIFLE'),
+					 GetHashKey('WEAPON_BULLPUPRIFLE_MK2'),
+					 GetHashKey('WEAPON_SPECIALCARBINE_MK2'),
+					}
 	for i, CurrentWeapon in ipairs(Weapons) do
-		if GetHashKey(CurrentWeapon) == Weapon then
+		if CurrentWeapon == Weapon then
 			return true
 		end
 	end
@@ -337,9 +362,14 @@ function IsRifle(Weapon)
 end
 
 function IsLight(Weapon)
-	local Weapons = {'WEAPON_MG', 'WEAPON_COMBATMG'}
+	local Weapons = {
+					 GetHashKey('WEAPON_MG'),
+					 GetHashKey('WEAPON_COMBATMG'),
+					 GetHashKey('VEHICLE_WEAPON_PLAYER_BULLET'),
+					 GetHashKey('WEAPON_COMBATMG_MK2'),
+					}
 	for i, CurrentWeapon in ipairs(Weapons) do
-		if GetHashKey(CurrentWeapon) == Weapon then
+		if CurrentWeapon == Weapon then
 			return true
 		end
 	end
@@ -347,9 +377,18 @@ function IsLight(Weapon)
 end
 
 function IsShotgun(Weapon)
-	local Weapons = {'WEAPON_BULLPUPSHOTGUN', 'WEAPON_ASSAULTSHOTGUN', 'WEAPON_DBSHOTGUN', 'WEAPON_PUMPSHOTGUN', 'WEAPON_HEAVYSHOTGUN', 'WEAPON_SAWNOFFSHOTGUN'}
+	local Weapons = {
+					 GetHashKey('WEAPON_PUMPSHOTGUN'),
+					 GetHashKey('WEAPON_SAWNOFFSHOTGUN'),
+					 GetHashKey('WEAPON_ASSAULTSHOTGUN'),
+					 GetHashKey('WEAPON_BULLPUPSHOTGUN'),
+					 GetHashKey('WEAPON_HEAVYSHOTGUN'),
+					 GetHashKey('WEAPON_DBSHOTGUN'),
+					 GetHashKey('WEAPON_AUTOSHOTGUN'),
+					 GetHashKey('WEAPON_PUMPSHOTGUN_MK2'),
+					}
 	for i, CurrentWeapon in ipairs(Weapons) do
-		if GetHashKey(CurrentWeapon) == Weapon then
+		if CurrentWeapon == Weapon then
 			return true
 		end
 	end
@@ -357,9 +396,17 @@ function IsShotgun(Weapon)
 end
 
 function IsSniper(Weapon)
-	local Weapons = {'WEAPON_MARKSMANRIFLE', 'WEAPON_SNIPERRIFLE', 'WEAPON_HEAVYSNIPER', 'WEAPON_ASSAULTSNIPER', 'WEAPON_REMOTESNIPER'}
+	local Weapons = {
+					 GetHashKey('WEAPON_HEAVYSNIPER'),
+					 GetHashKey('WEAPON_REMOTESNIPER'),
+					 GetHashKey('WEAPON_SNIPERRIFLE'),
+					 GetHashKey('WEAPON_SNIPER_ASSAULT'),
+					 GetHashKey('WEAPON_MARKSMANRIFLE'),
+					 GetHashKey('WEAPON_HEAVYSNIPER_MK2'),
+					 GetHashKey('WEAPON_MARKSMANRIFLE_MK2'),
+					}
 	for i, CurrentWeapon in ipairs(Weapons) do
-		if GetHashKey(CurrentWeapon) == Weapon then
+		if CurrentWeapon == Weapon then
 			return true
 		end
 	end
@@ -367,9 +414,29 @@ function IsSniper(Weapon)
 end
 
 function IsHeavy(Weapon)
-	local Weapons = {'WEAPON_GRENADELAUNCHER', 'WEAPON_RPG', 'WEAPON_FLAREGUN', 'WEAPON_HOMINGLAUNCHER', 'WEAPON_FIREWORK', 'VEHICLE_WEAPON_TANK'}
+	local Weapons = {
+					 GetHashKey('WEAPON_EXPLOSION'),
+					 GetHashKey('WEAPON_GRENADELAUNCHER'),
+					 GetHashKey('WEAPON_FLAREGUN'),
+					 GetHashKey('WEAPON_RPG'),
+					 GetHashKey('WEAPON_VEHICLE_ROCKET'),
+					 GetHashKey('WEAPON_RAILGUN'),
+					 GetHashKey('WEAPON_FIREWORK'),
+					 GetHashKey('WEAPON_HOMINGLAUNCHER'),
+					 GetHashKey('WEAPON_COMPACTLAUNCHER'),
+					 GetHashKey('WEAPON_AIRSTRIKE_ROCKET'),
+					 GetHashKey('VEHICLE_WEAPON_TURRET_TECHNICAL'),
+					 GetHashKey('VEHICLE_WEAPON_SPACE_ROCKET'),
+					 GetHashKey('VEHICLE_WEAPON_PLAYER_LASER'),
+					 GetHashKey('VEHICLE_WEAPON_PLAYER_BUZZARD'),
+					 GetHashKey('WEAPON_PASSENGER_ROCKET'),
+					 GetHashKey('VEHICLE_WEAPON_PLANE_ROCKET'),
+					 -901318531,
+					 1177935125,
+					 GetHashKey('VEHICLE_WEAPON_PLAYER_SAVAGE'),
+					}
 	for i, CurrentWeapon in ipairs(Weapons) do
-		if GetHashKey(CurrentWeapon) == Weapon then
+		if CurrentWeapon == Weapon then
 			return true
 		end
 	end
@@ -377,9 +444,11 @@ function IsHeavy(Weapon)
 end
 
 function IsMinigun(Weapon)
-	local Weapons = {'WEAPON_MINIGUN'}
+	local Weapons = {
+					 GetHashKey('WEAPON_MINIGUN'),
+					}
 	for i, CurrentWeapon in ipairs(Weapons) do
-		if GetHashKey(CurrentWeapon) == Weapon then
+		if CurrentWeapon == Weapon then
 			return true
 		end
 	end
@@ -387,9 +456,38 @@ function IsMinigun(Weapon)
 end
 
 function IsBomb(Weapon)
-	local Weapons = {'WEAPON_GRENADE', 'WEAPON_PROXMINE', 'WEAPON_EXPLOSION', 'WEAPON_STICKYBOMB'}
+	local Weapons = {
+				 GetHashKey('WEAPON_STICKYBOMB'),
+				 GetHashKey('WEAPON_GRENADE'),
+				 GetHashKey('WEAPON_PROXMINE'),
+				 GetHashKey('WEAPON_PIPEBOMB'),
+					}
 	for i, CurrentWeapon in ipairs(Weapons) do
-		if GetHashKey(CurrentWeapon) == Weapon then
+		if CurrentWeapon == Weapon then
+			return true
+		end
+	end
+	return false
+end
+
+function IsBZGas(Weapon)
+	local Weapons = {
+					 GetHashKey('WEAPON_BZGAS'),
+					}
+	for i, CurrentWeapon in ipairs(Weapons) do
+		if CurrentWeapon == Weapon then
+			return true
+		end
+	end
+	return false
+end
+
+function IsTank(Weapon)
+	local Weapons = {
+					 GetHashKey('VEHICLE_WEAPON_TANK'),
+					}
+	for i, CurrentWeapon in ipairs(Weapons) do
+		if CurrentWeapon == Weapon then
 			return true
 		end
 	end
@@ -397,9 +495,11 @@ function IsBomb(Weapon)
 end
 
 function IsVeh(Weapon)
-	local Weapons = {'VEHICLE_WEAPON_ROTORS'}
+	local Weapons = {
+					 GetHashKey('VEHICLE_WEAPON_ROTORS'),
+					}
 	for i, CurrentWeapon in ipairs(Weapons) do
-		if GetHashKey(CurrentWeapon) == Weapon then
+		if CurrentWeapon == Weapon then
 			return true
 		end
 	end
@@ -407,11 +507,114 @@ function IsVeh(Weapon)
 end
 
 function IsVK(Weapon)
-	local Weapons = {'WEAPON_RUN_OVER_BY_CAR', 'WEAPON_RAMMED_BY_CAR'}
+	local Weapons = {
+					 GetHashKey('WEAPON_RAMMED_BY_CAR'),
+					 GetHashKey('WEAPON_RUN_OVER_BY_CAR'),
+					}
 	for i, CurrentWeapon in ipairs(Weapons) do
-		if GetHashKey(CurrentWeapon) == Weapon then
+		if CurrentWeapon == Weapon then
 			return true
 		end
+	end
+	return false
+end
+
+function GetReason(DeathCauseHash)
+	local DeathReasonKiller, DeathReasonVictim, DeathReasonOthers
+	if WasPedKilledByStealth(PlayerPedId()) or WasPedKilledByTakedown(PlayerPedId()) then
+		DeathReasonKiller = 'DM_TK_EXE0'
+		DeathReasonVictim = 'DM_TK_EXE1'
+		DeathReasonOthers = 'DM_TK_EXE2'
+	elseif IsMelee(DeathCauseHash) then
+		INT = GetRandomIntInRange(0, 4)
+		DeathReasonKiller = 'DM_TK_MELEE0' .. INT
+		DeathReasonVictim = 'DM_TK_MELEE1' .. INT
+		DeathReasonOthers = 'DM_TK_MELEE2' .. INT
+	elseif IsTorch(DeathCauseHash) then
+		INT = GetRandomIntInRange(0, 2)
+		DeathReasonKiller = 'DM_TK_TORCH0' .. INT
+		DeathReasonVictim = 'DM_TK_TORCH1' .. INT
+		DeathReasonOthers = 'DM_TK_TORCH2' .. INT
+	elseif IsKnife(DeathCauseHash) then
+		INT = GetRandomIntInRange(0, 2)
+		DeathReasonKiller = 'DM_TK_KNIFE0' .. INT
+		DeathReasonVictim = 'DM_TK_KNIFE1' .. INT
+		DeathReasonOthers = 'DM_TK_KNIFE2' .. INT
+	elseif IsPistol(DeathCauseHash) then
+		INT = GetRandomIntInRange(0, 1)
+		DeathReasonKiller = 'DM_TK_PISTOL0' .. INT
+		DeathReasonVictim = 'DM_TK_PISTOL1' .. INT
+		DeathReasonOthers = 'DM_TK_PISTOL2' .. INT
+	elseif IsSub(DeathCauseHash) then
+		INT = GetRandomIntInRange(0, 3)
+		DeathReasonKiller = 'DM_TK_SUB0' .. INT
+		DeathReasonVictim = 'DM_TK_SUB1' .. INT
+		DeathReasonOthers = 'DM_TK_SUB2' .. INT
+	elseif IsRifle(DeathCauseHash) then
+		INT = GetRandomIntInRange(0, 3)
+		DeathReasonKiller = 'DM_TK_ARIFLE0' .. INT
+		DeathReasonVictim = 'DM_TK_ARIFLE1' .. INT
+		DeathReasonOthers = 'DM_TK_ARIFLE2' .. INT
+	elseif IsLight(DeathCauseHash) then
+		INT = GetRandomIntInRange(0, 2)
+		DeathReasonKiller = 'DM_TK_LIGHT0' .. INT
+		DeathReasonVictim = 'DM_TK_LIGHT1' .. INT
+		DeathReasonOthers = 'DM_TK_LIGHT2' .. INT
+	elseif IsShotgun(DeathCauseHash) then
+		INT = GetRandomIntInRange(0, 2)
+		DeathReasonKiller = 'DM_TK_SHOT0' .. INT
+		DeathReasonVictim = 'DM_TK_SHOT1' .. INT
+		DeathReasonOthers = 'DM_TK_SHOT2' .. INT
+	elseif IsSniper(DeathCauseHash) then
+		INT = GetRandomIntInRange(0, 2)
+		DeathReasonKiller = 'DM_TK_SNIPE0' .. INT
+		DeathReasonVictim = 'DM_TK_SNIPE1' .. INT
+		DeathReasonOthers = 'DM_TK_SNIPE2' .. INT
+	elseif IsHeavy(DeathCauseHash) then
+		INT = GetRandomIntInRange(0, 2)
+		DeathReasonKiller = 'DM_TK_HEAVY0' .. INT
+		DeathReasonVictim = 'DM_TK_HEAVY1' .. INT
+		DeathReasonOthers = 'DM_TK_HEAVY2' .. INT
+	elseif IsMinigun(DeathCauseHash) then
+		INT = GetRandomIntInRange(0, 3)
+		DeathReasonKiller = 'DM_TK_MINI0' .. INT
+		DeathReasonVictim = 'DM_TK_MINI1' .. INT
+		DeathReasonOthers = 'DM_TK_MINI2' .. INT
+	elseif IsBomb(DeathCauseHash) then
+		INT = GetRandomIntInRange(0, 2)
+		DeathReasonKiller = 'DM_TK_BOMB0' .. INT
+		DeathReasonVictim = 'DM_TK_BOMB1' .. INT
+		DeathReasonOthers = 'DM_TK_BOMB2' .. INT
+	elseif IsBZGas(DeathCauseHash) then
+		INT = GetRandomIntInRange(0, 1)
+		DeathReasonKiller = 'DM_TK_GAS0' .. INT
+		DeathReasonVictim = 'DM_TK_GAS1' .. INT
+		DeathReasonOthers = 'DM_TK_GAS2' .. INT
+	elseif IsTank(DeathCauseHash) then
+		INT = GetRandomIntInRange(0, 1)
+		DeathReasonKiller = 'DM_TK_HEAVY0' .. INT
+		DeathReasonVictim = 'DM_TK_HEAVY1' .. INT
+		DeathReasonOthers = 'DM_TK_HEAVY2' .. INT
+	elseif IsVeh(DeathCauseHash) then
+		DeathReasonKiller = 'DM_TK_VEH0'
+		DeathReasonVictim = 'DM_TK_VEH1'
+		DeathReasonOthers = 'DM_TK_VEH2'
+	elseif IsVK(DeathCauseHash) then
+		DeathReasonKiller = 'DM_TK_VK0'
+		DeathReasonVictim = 'DM_TK_VK1'
+		DeathReasonOthers = 'DM_TK_VK2'
+	else
+		DeathReasonKiller = 'DM_TICK2'
+		DeathReasonVictim = 'DM_TICK1'
+		DeathReasonOthers = 'DM_TICK6'
+	end
+	return DeathReasonKiller, DeathReasonVictim, DeathReasonOthers
+end
+
+function FasterRespawnClicked()
+	if (IsInputDisabled(2) and GetIsControlJustPressed(237)) or
+	(not IsInputDisabled(2) and GetIsControlJustPressed(201)) then
+		return true
 	end
 	return false
 end
